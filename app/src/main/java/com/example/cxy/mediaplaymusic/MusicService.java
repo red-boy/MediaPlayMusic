@@ -41,6 +41,16 @@ public class MusicService extends Service {
 
         }
 
+        public void pauseMusic() {
+            Log.d("Mybind", "MediaPlayer的pause方法");
+            mMediaPlayer.pause();
+        }
+
+        public void startMusic() {
+            Log.d("Mybind", "MediaPlayer的start方法");
+            mMediaPlayer.start();
+        }
+
     }
 
     @Override
@@ -64,6 +74,7 @@ public class MusicService extends Service {
     public void onDestroy() {
         Log.d("MusicService", "onDestroy");
         mMediaPlayer.stop();
+        mMediaPlayer.release();
         super.onDestroy();
     }
 

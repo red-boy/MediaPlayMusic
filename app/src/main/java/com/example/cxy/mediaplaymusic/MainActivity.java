@@ -160,18 +160,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.start:
                 Log.d("MainActivity", "开启播放");
-                doServiceConnection();
+                mMybind.startMusic();
                 mMusicListenerHandle.sendEmptyMessage(MESSAGE_AUTO_SEARCH);
 
                 break;
             case R.id.stop:
                 Log.d("MainActivity", "暂停播放");
-                if (isBind) {
-                    unbindService(mServiceConnection);
-                    stopService(mIntent);
-                    isBind = false;
-                }
-
+                mMybind.pauseMusic();
                 mMusicListenerHandle.sendEmptyMessage(MESSAGE_STOP_SEARCH);
                 break;
         }
@@ -184,8 +179,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         Log.d("MainActivity", "onDestroy");
-        unbindService(mServiceConnection);
-        stopService(mIntent);
+        if (isBind) {
+            unbindService(mServiceConnection);
+            stopService(mIntent);
+            isBind = false;
+        }
         unregisterReceiver(mMusicBroadcastReceiver);
         super.onDestroy();
     }
