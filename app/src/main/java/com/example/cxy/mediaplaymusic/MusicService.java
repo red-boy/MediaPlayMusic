@@ -14,6 +14,8 @@ import android.util.Log;
 
 public class MusicService extends Service {
     private MediaPlayer mMediaPlayer;
+    private int duration;
+    private int postion;
 
     public MusicService() {
 
@@ -23,32 +25,62 @@ public class MusicService extends Service {
 
         //获取歌曲总长度
         public int getMusicDuration() {
-            int duration = 0;
-            duration = mMediaPlayer.getDuration();
+            if (mMediaPlayer != null) {
+                duration = mMediaPlayer.getDuration();
+            } else {
+                return 0;
+            }
             return duration;
         }
 
         //跟踪歌曲播放进度
         public int getMusicPostion() {
-            int postion = 0;
-            postion = mMediaPlayer.getCurrentPosition();
+            if (mMediaPlayer != null) {
+                postion = mMediaPlayer.getCurrentPosition();
+            } else {
+                return 0;
+            }
             return postion;
         }
 
         //手动设置播放进度
         public void seekTo(int position) {
-            mMediaPlayer.seekTo(position);
+            if (mMediaPlayer != null) {
+                mMediaPlayer.seekTo(position);
+            }
 
         }
 
         public void pauseMusic() {
-            Log.d("Mybind", "MediaPlayer的pause方法");
-            mMediaPlayer.pause();
+            if (mMediaPlayer != null) {
+                Log.d("Mybind", "MediaPlayer的pause方法");
+                mMediaPlayer.pause();
+            }
         }
 
         public void startMusic() {
-            Log.d("Mybind", "MediaPlayer的start方法");
-            mMediaPlayer.start();
+            if (mMediaPlayer != null) {
+                Log.d("Mybind", "MediaPlayer的start方法");
+                mMediaPlayer.start();
+            }
+        }
+
+        public void relaseMedia() {
+            if (mMediaPlayer != null) {
+                mMediaPlayer.stop();
+                mMediaPlayer = null;
+                mMediaPlayer.release();
+            } else {
+                Log.d("Mybind", "mMediaPlayer之前就已为空");
+            }
+        }
+
+        public void loopMusic() {
+            if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                Log.d("Mybind", "loopMusic");
+                mMediaPlayer.setLooping(true);
+                mMediaPlayer.start();
+            }
         }
 
     }
@@ -56,8 +88,7 @@ public class MusicService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("MusicService", "MusicService正在运行");
-        mMediaPlayer = MediaPlayer.create(this, R.raw.music);
+        mMediaPlayer = MediaPlayer.create(this, R.raw.music);//装载资源中的音乐文件
         mMediaPlayer.setLooping(true);//设置循环播放
 
         /**发送广播*/
@@ -73,14 +104,18 @@ public class MusicService extends Service {
     @Override
     public void onDestroy() {
         Log.d("MusicService", "onDestroy");
-        mMediaPlayer.stop();
-        mMediaPlayer.release();
+        if (mMediaPlayer != null) {
+            mMediaPlayer.stop();
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
         super.onDestroy();
     }
 
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        mMediaPlayer.start();
+//        mMediaPlayer.start();
         return super.onStartCommand(intent, flags, startId);
     }
 

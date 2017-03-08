@@ -17,17 +17,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+import com.example.cxy.mediaplaymusic.utils.SecToTime;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
     private Button startButton, stopButton;
     private TextView mTextView;
+    private SeekBar seekbar;
     private Intent mIntent;
     private IntentFilter mIntentFilter;
     private MusicBroadcastReceiver mMusicBroadcastReceiver;
-    private int positon;//音乐播放的节点
-    private int durtion;
+    private float positon;//音乐播放的节点
+    private float durtion;
 
     private ServiceConnection mServiceConnection;
     private MusicService.Mybind mMybind;
@@ -37,17 +41,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private MusicListenerHandle mMusicListenerHandle;// 创建一个自己的handler
     private HandlerThread mHandlerThread;
 
+    /**
+     * Seekbar监听:
+     * onProgressChanged方法的参数fromUser，可用于判断进度改变操作是否来自用户
+     */
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        Log.d("MainActivity", "progress:" + progress + "拖动进度条操作是否来自用户:" + fromUser);
+        if (fromUser) {
+            seekbar.setProgress(progress);
+            mMybind.seekTo((int) (progress * durtion / 100));
+        }
+
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+
+    }
+
 
     public class MusicBroadcastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             Bundle bundle = intent.getExtras();
             durtion = bundle.getInt("musicDurtion");
-            Log.d("onReceive", "durtion:" + durtion);
 
         }
     }
 
+    private float mFloat;//当前时间占总时间的百分比
     //子线程更新UI
     protected Handler mHandler = new Handler() {
         @Override
@@ -55,7 +83,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             super.handleMessage(msg);
             switch (msg.what) {
                 case MESSAGE_AUTO_SEARCH:
-                    mTextView.setText("durtion是" + durtion + ",position是" + positon);
+                    mFloat = (positon * 100 / durtion);
+                    int progress = (int) mFloat;
+                    seekbar.setMax(100);
+                    seekbar.setProgress(progress);
+//                    mTextView.setText("durtion是" + durtion + ",position是" + positon + ",进度是" + progress + "%");
+                    mTextView.setText("当前时间：" + SecToTime.secToTime((int) (positon / 1000)) + ",当前播放:" + positon + "毫秒");
                     break;
                 case MESSAGE_STOP_SEARCH:
                     Toast.makeText(MainActivity.this, "音乐播放服务结束", Toast.LENGTH_SHORT).show();
@@ -75,13 +108,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case MESSAGE_AUTO_SEARCH:
                     if (mMybind != null) {
                         positon = mMybind.getMusicPostion();
-                        Log.d("MusicListenerHandle", "position是" + positon);
+
                         mHandler.sendEmptyMessage(MESSAGE_AUTO_SEARCH);
-                        if (positon <= durtion) {
-                            sendEmptyMessage(MESSAGE_AUTO_SEARCH);
-                        } else {
-                            sendEmptyMessage(MESSAGE_STOP_SEARCH);
-                        }
+
+                        sendEmptyMessage(MESSAGE_AUTO_SEARCH);
+
                     } else {
                         doServiceConnection();
                     }
@@ -103,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startButton = (Button) findViewById(R.id.start);
         stopButton = (Button) findViewById(R.id.stop);
         mTextView = (TextView) findViewById(R.id.musicPostion);
+        seekbar = (SeekBar) findViewById(R.id.seekbar);
 
         startButton.setOnClickListener(this);
         stopButton.setOnClickListener(this);
@@ -121,6 +153,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mHandlerThread.start();
             mMusicListenerHandle = new MusicListenerHandle(mHandlerThread.getLooper());
         }
+
+        //seekbar监听
+        seekbar.setOnSeekBarChangeListener(this);
 
 
     }
@@ -178,13 +213,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     @Override
     protected void onDestroy() {
-        Log.d("MainActivity", "onDestroy");
         if (isBind) {
             unbindService(mServiceConnection);
             stopService(mIntent);
             isBind = false;
         }
         unregisterReceiver(mMusicBroadcastReceiver);
+
         super.onDestroy();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d("MainActivity", "onStop");
     }
 }
