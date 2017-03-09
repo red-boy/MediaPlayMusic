@@ -2,6 +2,7 @@ package com.example.cxy.mediaplaymusic;
 
 import android.app.Service;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
@@ -14,6 +15,7 @@ import android.util.Log;
 
 public class MusicService extends Service {
     private MediaPlayer mMediaPlayer;
+    private AudioManager mAudioManager;//音频
     private int duration;
     private int postion;
 
@@ -65,6 +67,7 @@ public class MusicService extends Service {
             }
         }
 
+        //释放资源
         public void relaseMedia() {
             if (mMediaPlayer != null) {
                 mMediaPlayer.stop();
@@ -75,11 +78,36 @@ public class MusicService extends Service {
             }
         }
 
+        //循环音乐
         public void loopMusic() {
             if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                 Log.d("Mybind", "loopMusic");
                 mMediaPlayer.setLooping(true);
                 mMediaPlayer.start();
+            }
+        }
+
+        //减小音量
+        public void turnDownVolume() {
+            if (mAudioManager != null) {
+                /**第一个参数：声音类型
+                 * 第二个参数：调整音量的方向
+                 * 第三个参数：可选的标志位*/
+                mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+            }
+        }
+
+        //增大音量
+        public void turnUpVolume() {
+            if (mAudioManager != null) {
+                mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+            }
+        }
+
+        //静音
+        public void muteVolume(boolean isMute) {
+            if (mAudioManager != null) {
+                mAudioManager.setStreamMute(AudioManager.STREAM_MUSIC, isMute);
             }
         }
 
@@ -90,6 +118,8 @@ public class MusicService extends Service {
         super.onCreate();
         mMediaPlayer = MediaPlayer.create(this, R.raw.music);//装载资源中的音乐文件
         mMediaPlayer.setLooping(true);//设置循环播放
+
+        mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
 
         /**发送广播*/
         Intent intent = new Intent();

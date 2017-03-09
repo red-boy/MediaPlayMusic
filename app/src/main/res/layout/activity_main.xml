@@ -58,4 +58,43 @@
         android:progress="0"
         android:thumb="@mipmap/air_temforward_solid"/>
 
+    <LinearLayout
+        android:layout_width="280dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="音量调节"/>
+
+        <Button
+            android:id="@+id/btnMute"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/control_btn_wifi"
+            />
+
+
+        <Button
+            android:id="@+id/btnTurnup"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="调大"/>
+
+        <Button
+            android:id="@+id/btnTurndown"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="调小"/>
+    </LinearLayout>
+
 </LinearLayout>

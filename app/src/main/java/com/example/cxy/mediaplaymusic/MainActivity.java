@@ -24,7 +24,7 @@ import android.widget.Toast;
 import com.example.cxy.mediaplaymusic.utils.SecToTime;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
-    private Button startButton, stopButton;
+    private Button startButton, stopButton, btnTurnup, btnTurndown, btnMute;
     private TextView mTextView;
     private SeekBar seekbar;
     private Intent mIntent;
@@ -135,9 +135,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         stopButton = (Button) findViewById(R.id.stop);
         mTextView = (TextView) findViewById(R.id.musicPostion);
         seekbar = (SeekBar) findViewById(R.id.seekbar);
+        btnTurnup = (Button) findViewById(R.id.btnTurnup);
+        btnTurndown = (Button) findViewById(R.id.btnTurndown);
+        btnMute = (Button) findViewById(R.id.btnMute);
 
         startButton.setOnClickListener(this);
         stopButton.setOnClickListener(this);
+        btnTurnup.setOnClickListener(this);
+        btnTurndown.setOnClickListener(this);
+        btnMute.setOnClickListener(this);
 
         //注册广播
         mMusicBroadcastReceiver = new MusicBroadcastReceiver();
@@ -184,10 +190,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+
     /**
      * 用于判断是否绑定了服务，避免后面程序报错“Service not registered:”
      */
     private boolean isBind = false;
+    private boolean isMute = false;//用于静音按钮
 
     @Override
     public void onClick(View v) {
@@ -204,6 +212,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mMybind.pauseMusic();
                 mMusicListenerHandle.sendEmptyMessage(MESSAGE_STOP_SEARCH);
                 break;
+
+            case R.id.btnTurnup:
+                Log.d("MainActivity", "btnTurnup按下");
+                mMybind.turnUpVolume();
+                break;
+
+            case R.id.btnTurndown:
+                Log.d("MainActivity", "btnTurndown按下");
+                mMybind.turnDownVolume();
+                break;
+
+            case R.id.btnMute:
+                Log.d("MainActivity", "btnMute");
+                if (isMute == false) {
+                    isMute = true;
+//                    btnMute.setBackground(getResources().getDrawable(R.drawable.control_btn_wifi1));该方法需要API16版本以上
+                    btnMute.setBackgroundResource(R.drawable.control_btn_wifi1);
+                    mMybind.muteVolume(isMute);
+                } else {
+                    isMute = false;
+                    btnMute.setBackgroundResource(R.drawable.control_btn_wifi);
+                    mMybind.muteVolume(isMute);
+                }
+                Log.d("MainActivity", "btnMute按下");
+
+                break;
+
+
         }
 
     }
